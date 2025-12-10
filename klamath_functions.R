@@ -167,14 +167,14 @@ feedfiler <- function(title, dt) {
 # outputting one for each time chunk. It also generates the TFR call file for the direct recharge.
 #    'data' is any dataset in form SEQNUM, chunk, output
 #    'grid' is model grid
-dr_grid <- function(data,grid,folder,title) {
+dr_grid <- function(data,grid,folder,title,unit) {
   
   ETlist <- list()
   tfrpath <- paste0(rootz,folder,title,".tfr")
   
   write(x = paste0("# Klamath Basin FMP Transient File Reader from ",
-                   title,
-                   " in CFS with model cell area 6250000.0 ft2"),
+                   title, " in ", unit,
+                   " with model cell area 6250000.0 ft2"),
         append = F, file = tfrpath)
   
   chunker <- arrange(ungroup(data),chunk)$chunk %>% 

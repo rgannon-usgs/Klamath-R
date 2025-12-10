@@ -84,7 +84,7 @@ seepage_input <- seepage_input2 %>%
 
 print("Writing canal seepage TFR and direct recharge files")
 
-dr_grid(seepage_input, grid, folder, title)
+dr_grid(seepage_input, grid, folder, title, "CFS")
 
 # make a plot of canal grid locations and canal overlay
 

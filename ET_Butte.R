@@ -120,7 +120,7 @@ butter <- function(data, namer, days, folder, title, count) {
   
   if(count == 1) {writeLines(paste0("# Klamath Basin FMP Transient File Reader from ",
                                    title,
-                                   " in feet per second with model cell area 6250000.0 ft2"),
+                                   " in FPS with model cell area 6250000.0 ft2"),
                         fileConn)}
   
   writeLines(paste0("OPEN/CLOSE  ", tfr_pathnm, "  SF 1.0   # SP ", trinum, "    ", namer),

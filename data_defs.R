@@ -116,7 +116,7 @@ if (exists("dat")) {
 if (exists("datf")) {
   print("FieldScale already imported. Skipping.")
 } else {
-  print("Compiling FieldScale csv data from the 6 HUC8 zip files")
+  print("Compiling FieldScale csv data from the 6 HUC8 zip files (this can take 30 min)")
   begin <- round(Sys.time())
   datf <- datprocessor(fields_zips) #%>% 
   #  rename(!!dat_names)

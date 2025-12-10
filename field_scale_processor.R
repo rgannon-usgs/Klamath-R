@@ -27,6 +27,7 @@ dir.create(paste0(rootz,folder3), recursive = T, showWarnings = F)
 # use 'fields' and 'field_intersects' for previously imported shapefiles
 # use 'datf' for previously imported field-scale data
 # use 'Irr_runoff_AF', 'et_gw_AF', and 'Deep_perc_AF' within 'datf' for data
+# UNITS NOTE: ET_GW IS *feet per second* AND IRR & DEEP PERC ARE *cubic feet per second*
 
 # Transform data into 3 month chunks 
 print("Processing field-scale data down to 3 month chunks and converting to CFS")
@@ -35,12 +36,12 @@ field_dat <- datf %>%
   mutate(days = days_in_month(Date)) %>% 
   group_by(OPENET_ID, chunk, HUC8) %>% 
   summarise(IRR = sum(Irr_runoff_AF),
-            ET = sum(et_gw_AF),
+            ET = sum(et_gw_mm),
             DP = sum(Deep_perc_AF),
             days = sum(days)) %>% 
   arrange(HUC8, OPENET_ID, chunk) %>% 
   mutate(IRR_CFS = AFconv(IRR,days),
-         ET_CFS = AFconv(ET,days),
+         ET_FS = ET/304.8/days/86400,
          DP_CFS = AFconv(DP,days))
 
 # Distribute values across model cells and intersect data onto model grid
@@ -48,10 +49,11 @@ print("Distributing field-scale data onto model grid cells")
 
 field_scale <- field_intersects %>% 
   select(OPENET_ID, ACRES, SEQNUM, Shape_Area) %>% 
-  mutate(area_frac = (Shape_Area/4046.86)/ACRES) %>% 
+  mutate(area_frac = (Shape_Area/4046.86)/ACRES,
+         cell_frac = ifelse(Shape_Area < 580644, Shape_Area/580644, 580644)) %>% 
   left_join(field_dat, by = c("OPENET_ID" = "OPENET_ID"), relationship = "many-to-many") %>% 
   mutate(IRR = IRR_CFS * area_frac,
-         ET = ET_CFS * area_frac,
+         ET = ET_FS * cell_frac,
          DP = DP_CFS * area_frac) %>% 
   select(OPENET_ID, SEQNUM, chunk, IRR, ET, DP)
 
@@ -69,9 +71,9 @@ grid_f <- grid %>% filter(SEQNUM %in% field_scale$SEQNUM)
 
 print("Writing TFR and direct recharge files for irrigation runoff, ET, and deep perc recharge.")
 
-dr_grid(select(field_scale2, 1, 2, 3), grid, folder1, title1)
-dr_grid(select(field_scale2, 1, 2, 4), grid, folder2, title2)
-dr_grid(select(field_scale2, 1, 2, 5), grid, folder3, title3)
+dr_grid(select(field_scale2, 1, 2, 3), grid, folder1, title1, "CFS")
+ETGWlist <- dr_grid(select(field_scale2, 1, 2, 4), grid, folder2, title2, "FPS")
+dr_grid(select(field_scale2, 1, 2, 5), grid, folder3, title3, "CFS")
 
 # Figs, and trouble shooting. Why doesn't my data match Scott's?
 print("Updating data for plots and generating plot")
